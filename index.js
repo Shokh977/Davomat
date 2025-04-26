@@ -48,9 +48,7 @@ app.post('/attend', async (req, res) => {
     });
 
     // Save the attendance record to database
-    await newAttendance.save();
-
-    // Send success response
+    await newAttendance.save();    // Send success response
     return res.status(201).json({
       success: true,
       message: 'Attendance recorded successfully',
@@ -67,9 +65,38 @@ app.post('/attend', async (req, res) => {
   }
 });
 
+// GET route to fetch all attendance records
+app.get('/attendances', async (req, res) => {
+  try {
+    const attendances = await Attendance.find().sort({ time: -1 });
+    return res.status(200).json({
+      success: true,
+      count: attendances.length,
+      data: attendances
+    });
+  } catch (error) {
+    console.error('Error fetching attendances:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+});
+
 // Simple GET route to test if the server is running
 app.get('/', (req, res) => {
   res.send('Attendance API is running!');
+});
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
 });
 
 // Start the server
